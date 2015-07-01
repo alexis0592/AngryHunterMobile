@@ -11,9 +11,9 @@ public class NetworkManager : MonoBehaviour {
 	private HostData[] hostList;
 
 	private NetworkView nView;
-
+	public GameObject gobjMira;
 	void Start(){
-		nView = GetComponent<NetworkView> ();
+
 	}
 
 	public void changeScene(string scene){
@@ -22,7 +22,7 @@ public class NetworkManager : MonoBehaviour {
 		RefreshHostList ();
 		if (hostList != null) {
 			JoinServer(hostList[0]);
-			SendInfoToServer();
+			//SendInfoToServer();
 			//Application.LoadLevel (scene);
 		}
 	}
@@ -31,7 +31,7 @@ public class NetworkManager : MonoBehaviour {
 		Debug.Log("Entr a change RefreshHostList");
 		if (!isRefreshingHostList){
 			isRefreshingHostList = true;
-			MasterServer.RequestHostList(typeName);
+			MasterServer.RequestHostList(typeName);	
 		}
 	}
 
@@ -48,17 +48,33 @@ public class NetworkManager : MonoBehaviour {
 	}
 	
 	void OnConnectedToServer(){
+		SpawnPlayer ();
+		//Network.Instantiate (gobjMira, new Vector3 (0f, 0f, 0f), Quaternion.identity, 0);
 		Debug.Log("Entr a change OnConnectedToServer");
 		Debug.Log("Server Joined");
 	}
 
-	[RPC] void SendInfoToServer(){
+	private void SpawnPlayer(){
+	
+		Network.Instantiate (gobjMira, new Vector3 (0f, 5f, 0f), Quaternion.identity, 0);
+	}
+
+	[RPC] 
+	void SendInfoToServer(){
 		string info = "Hola servidor";
-		nView.RPC("ReceiveInfoFromClient", RPCMode.Server, info);
+		GetComponent<NetworkView>().RPC("ReceiveInfoFromClient", RPCMode.Server, info);
+	}
+
+	[RPC]
+	void ReceiveInfoFromServer(string info){
+		Debug.Log ("Informacion del servidor: " + info);
+		Network.isMessageQueueRunning = false;
 	}
 
 	[RPC]
 	void ReceiveInfoFromClient(string info){}
 		
-	
+	[RPC]
+	void SendInfoToClient(){}
+
 }
